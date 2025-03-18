@@ -1,4 +1,4 @@
-import PullRequestType from './PullRequestType';
+import { PullRequestType, VersionTag } from './Types';
 
 export default class PackageUtils {
     // Default types from https://www.conventionalcommits.org/en/v1.0.0/ + extras
@@ -41,7 +41,7 @@ export default class PackageUtils {
      * @param packageVersion The package json version, only semver versions are supported
      * @param pullRequestType The pull request type, one of patch, minor or major
      */
-    public static getIncrementedVersion(
+    public static getIncrementedVersionNumber(
         packageVersion: string,
         pullRequestType: PullRequestType
     ): string {
@@ -60,4 +60,15 @@ export default class PackageUtils {
                 return packageVersion;
         }
     }
+
+    public static getVersionTag(source: string): string {
+        switch (source) {
+            case 'master':
+                return VersionTag.STABLE;
+            case 'main':
+                return VersionTag.STABLE;
+            default:
+                return VersionTag.CANARY;
+        }
+    };
 }

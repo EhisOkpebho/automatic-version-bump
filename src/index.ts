@@ -1,35 +1,57 @@
 import * as github from '@actions/github';
 import { exec } from '@actions/exec';
 import editJsonFile from 'edit-json-file';
+import { VersionPattern } from './Types';
 import PackageUtils from './PackageUtils';
 
 async function run() {
     // package.json file
     const file = editJsonFile('./package.json');
     // package.json version
-    const packageVersion = file.get('version');
-    console.log(`Current package version: ${packageVersion}`);
+    let version = file.get('version');
+    console.log(`Current package version: ${version}`);
 
     const pullRequest = github.context.payload.pull_request;
-    if (!pullRequest) {
-        throw new Error('Pull request not found');
+    const push = github.context.payload;
+    if (pullRequest) {
+        const pullRequestTitle = `${pullRequest.title}`;
+        console.log(`Pull request title is : ${pullRequestTitle}`);
+
+        // Pull request type (patch, minor or major)
+        const pullRequestType = PackageUtils.getPullRequestTypeFromTitle(
+            pullRequestTitle
+        );
+        console.log(`Pull request type is : ${pullRequestType}`);
+
+        // Update the package version  number
+        const newVersion = PackageUtils.getIncrementedVersionNumber(
+            version,
+            pullRequestType
+        );
+
+        version = version.replace(VersionPattern.VERSION_NUMBER, newVersion);
     }
-    const pullRequestTitle = `${pullRequest.title}`;
-    console.log(`Pull request title is : ${pullRequestTitle}`);
 
-    // Pull request type (patch, minor or major)
-    const pullRequestType = PackageUtils.getPullRequestTypeFromTitle(
-        pullRequestTitle
-    );
-    console.log(`Pull request type is : ${pullRequestType}`);
+    let targetBranch;
 
-    // Update the package version
-    const newVersion = PackageUtils.getIncrementedVersion(
-        packageVersion,
-        pullRequestType
-    );
-    console.log(`Updated new version : ${newVersion}`);
-    file.set('version', newVersion);
+    if (pullRequest) {
+        targetBranch = pullRequest.base.ref;
+        console.log(`Pull request target branch: ${targetBranch}`);
+    } else if (push && push.ref) {
+        targetBranch = push.ref.split('/').pop();
+        console.log(`Direct push to branch: ${targetBranch}`);
+    } else {
+        console.log('No pull request or push event detected');
+    }
+
+    if (version.includes('-')) {
+        version = version.replace(VersionPattern.TAG, `-${PackageUtils.getVersionTag(targetBranch)}`);
+    } else {
+        version = `${version}-${PackageUtils.getVersionTag(targetBranch)}`;
+    }
+
+    console.log(`Updated new version : ${version}`);
+    file.set('version', version);
 
     // Save the updated package json
     file.save();

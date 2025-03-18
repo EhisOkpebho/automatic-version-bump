@@ -1,6 +1,6 @@
 import { assert } from 'chai';
+import { PullRequestType } from '../src/Types';
 import PackageUtils from '../src/PackageUtils';
-import PullRequestType from '../src/PullRequestType';
 
 describe('Pull request title', () => {
     it('should return patch type', () => {
@@ -47,7 +47,7 @@ describe('Incrementation', () => {
     describe('patch', () => {
         it('should increment the patch version', () => {
             assert.equal(
-                PackageUtils.getIncrementedVersion(
+                PackageUtils.getIncrementedVersionNumber(
                     '1.0.0',
                     PullRequestType.PATCH
                 ),
@@ -59,7 +59,7 @@ describe('Incrementation', () => {
     describe('minor', () => {
         it('should increment the minor version', () => {
             assert.equal(
-                PackageUtils.getIncrementedVersion(
+                PackageUtils.getIncrementedVersionNumber(
                     '1.0.0',
                     PullRequestType.MINOR
                 ),
@@ -69,7 +69,7 @@ describe('Incrementation', () => {
 
         it('should reset the patch version', () => {
             assert.equal(
-                PackageUtils.getIncrementedVersion(
+                PackageUtils.getIncrementedVersionNumber(
                     '1.4.9',
                     PullRequestType.MINOR
                 ),
@@ -81,7 +81,7 @@ describe('Incrementation', () => {
     describe('major', () => {
         it('should increment the major version', () => {
             assert.equal(
-                PackageUtils.getIncrementedVersion(
+                PackageUtils.getIncrementedVersionNumber(
                     '1.0.0',
                     PullRequestType.MAJOR
                 ),
@@ -91,7 +91,7 @@ describe('Incrementation', () => {
 
         it('should reset the minor and patch version', () => {
             assert.equal(
-                PackageUtils.getIncrementedVersion(
+                PackageUtils.getIncrementedVersionNumber(
                     '1.4.9',
                     PullRequestType.MAJOR
                 ),
